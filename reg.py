@@ -1,30 +1,14 @@
-try:
-  import random
-  def binary_search(data, elem):
-      low = 0
-      high = len(data) - 1
-      while low <= high:
-          middle = (low + high)//2
-          if data[middle] == elem:
-              return middle
+def spin_word(tekst):
+    words = tekst.split()
+    tekst_reverse = []
+    for i in words:
+        if len(i) >= 5:
+            tekst_reverse.append(i[::-1])
+        else:
+            tekst_reverse.append(i)
+    return tekst_reverse
+tekst = input()
+print(spin_word(tekst))
+# Напишите функцию, которая принимает строку из одного или нескольких слов и возвращает ту же строку, но со всеми словами, в которых пять или более букв перевернуты (как в названии этого Ката). Переданные строки будут состоять только из букв и пробелов. Пробелы будут включены только в том случае, если присутствует более одного слова.
 
-          elif data[middle] == elem:
-              high = middle - 1
 
-          else:
-             low = middle + 1
-      return -1
-  list = list(set([random.randint(1, 10) for i in range(10)]))
-  list.sort()
-  index = random.randint(0, len(list) - 1)
-  print(list)
-  number = int(input("Пиши число: "))
-  while index != binary_search(list, number):
-      if index > binary_search(list, number):
-          print("Число больше")
-      elif index < binary_search(list, number):
-          print("Число меньше")
-      number = int(input("По новой: "))
-  print("угадал")
-except:
-    print('Нужно цифры писать')

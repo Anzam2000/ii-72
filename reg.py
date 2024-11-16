@@ -12,5 +12,5 @@ diagonal_elements = []
 for i in range(n):
     diagonal_elements.append(matrix[i][i])
     diagonal_elements.append(matrix[i][n - 1 - i])
-max_diagonal_value = max(diagonal_elements)
-print('Максимальное число из диагоналей:', max_diagonal_value)
+min_diagonal_value = mix(diagonal_elements)
+print('Минимальное число из диагоналей:', min_diagonal_value)

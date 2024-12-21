@@ -13,10 +13,23 @@ def handle_file(message):
             src = message.document.file_name
             with open(src, 'wb') as new_file:
                 new_file.write(downloaded_file)
-            numbers = list(map(str, downloaded_file.split()))
-            numbers = numbers.translate(str.maketrans('', '', string.punctuation))
+            downloaded_file = str(downloaded_file.split())
+            input_string = downloaded_file.replace(',', ' ')
+            input_string = input_string.replace('b', '')
+            input_string = input_string.replace('[', '')
+            input_string = input_string.replace("'", '')
+            input_string = input_string.replace("-", '')
+            input_string = input_string.replace("]", '')
+            print(input_string)
+            numbers = list(map(float, input_string.split()))
             sorted_numbers = radix_sort(numbers)
             bot.send_message(message.chat.id, ' '.join(map(str, sorted_numbers)))
+            sorted_numbers = ','.join(map(str, numbers))
+            with open('Итоговые.txt', 'w') as file:
+                    file.write(f"{sorted_numbers} ,")
+            with open("Итоговые.txt", "rb") as file:
+                file.read()
+            bot.send_document(message.chat.id, open(r'C:\Users\Замараев ИИ 72\PycharmProjects\pythonProject3\Итоговые.txt', 'rb'))
 
 @bot.message_handler(content_types=['text'])
 def repeat_all_messages(message):
@@ -50,7 +63,4 @@ def radix_sort(arr):
 
     # возвращаем отсортированный массив
     return arr
-
-
-if __name__ == '__main__':
-    bot.polling(none_stop=True)
+bot.polling(none_stop=True)

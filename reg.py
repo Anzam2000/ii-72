@@ -1,5 +1,6 @@
 import telebot
 import string
+import time
 token = "7715079734:AAFiEt054ZeorlXyJHOH4OsWxjvfd-2TIUc"
 bot = telebot.TeleBot(token)
 @bot.message_handler(commands=['start'])
@@ -8,6 +9,7 @@ def start_message(message):
 @bot.message_handler(content_types=['document'])
 def handle_file(message):
     if 'txt' == message.document.file_name.split('.')[1]:
+            start_time = time.time()
             file_info = bot.get_file(message.document.file_id)
             downloaded_file = bot.download_file(file_info.file_path)
             src = message.document.file_name
@@ -22,14 +24,20 @@ def handle_file(message):
             input_string = input_string.replace("]", '')
             print(input_string)
             numbers = list(map(float, input_string.split()))
-            sorted_numbers = radix_sort(numbers)
+            if any(num > 100.0 for num in numbers):
+                sorted_numbers = merge_sort(numbers)
+            else:
+                sorted_numbers = radix_sort(numbers)
             bot.send_message(message.chat.id, ' '.join(map(str, sorted_numbers)))
             sorted_numbers = ','.join(map(str, numbers))
             with open('Итоговые.txt', 'w') as file:
                     file.write(f"{sorted_numbers} ,")
             with open("Итоговые.txt", "rb") as file:
                 file.read()
-            bot.send_document(message.chat.id, open(r'D:\pythonProjectKorotaev-Aleksei P-63\Итоговые.txt', 'rb'))
+            bot.send_document(message.chat.id, open(r'C:\Users\Unicum_Student\PycharmProjects\pythonProject11\Итоговые.txt', 'rb'))
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            print(elapsed_time)
 
 @bot.message_handler(content_types=['text'])
 def repeat_all_messages(message):
@@ -44,6 +52,7 @@ def repeat_all_messages(message):
 
 
 def merge(left_list, right_list):
+    start_time = time.time()
     sorted_list = []
     left_list_index = right_list_index = 0
 
@@ -74,7 +83,9 @@ def merge(left_list, right_list):
         elif right_list_index == right_list_length:
             sorted_list.append(left_list[left_list_index])
             left_list_index += 1
-
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(elapsed_time)
     return sorted_list
 
 def merge_sort(nums):

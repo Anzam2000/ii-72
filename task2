@@ -4,12 +4,6 @@ def shift_rows(matrix, shifts):
     rows = len(matrix)
     shifts = shifts % rows
     return matrix[-shifts:] + matrix[:-shifts]
-def bubble_sort(row):
-    for i in range(len(row) + 1):
-        for j in range(len(row) - 1 - i):
-            if row[j] > row[j + 1]:
-                row[j], row[j + 1] = row[j + 1], row[j]
-    return row
 array = [[random.randint(0, 10) for i in range(x)] for j in range(x)]
 print("Исходная матрица:")
 for rowss in array:
@@ -19,7 +13,4 @@ shifts = 1
 result = shift_rows(array, shifts)
 print("Матрица после сдвига:")
 for i, row in enumerate(result):
-    print("Строка до сортировки:", row)
-for x, row in enumerate(result):
-    result[x] = bubble_sort(row)
-    print("Строка после сортировки:", result[x])
+    print(row)

@@ -1,0 +1,29 @@
+import random
+from datetime import datetime
+array = [random.randint(0, 10) for i in range(10000)]
+start_time = datetime.now()
+def bubble_sort(row):
+    for i in range(len(row) + 1):
+        for j in range(len(row) - 1 - i):
+            if row[j] < row[j + 1]:
+                row[j], row[j + 1] = row[j + 1], row[j]
+    return row
+list1 = bubble_sort(array)
+print(list1[0])
+end_time = datetime.now()
+execution_time = end_time - start_time
+print(execution_time)
+start_time = datetime.now()
+def selection_sort(arr):
+    for i in range(len(arr)):
+        min_index = i
+        for j in range(i + 1, len(arr)):
+            if arr[j] > arr[min_index]:
+                min_index = j
+        arr[i], arr[min_index] = arr[min_index], arr[i]
+        return arr
+list2 = selection_sort(array)
+print(list2[0])
+end_time = datetime.now()
+execution_time = end_time - start_time
+print(execution_time)

@@ -25,5 +25,5 @@ def selection_sort(arr):
 list2 = selection_sort(array)
 print(list2[0])
 end_time = datetime.now()
-execution_time = end_time - start_time
-print(execution_time)
+execution_time1 = end_time - start_time
+print(execution_time1)

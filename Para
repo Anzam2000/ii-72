@@ -1,0 +1,22 @@
+
+import pandas as pd
+import requests
+import bs4
+req = requests.get("https://books.toscrape.com/")
+src = req.text
+soup = bs4.BeautifulSoup(src, "html.parser")
+price = soup.findAll('p', class_='price_color')
+for x in price:
+    print(*x)
+names = soup.findAll('h3')
+# Создаем список для хранения данных
+data = []
+for title, prices in zip(names, price):
+    data.append([title.text.strip(), prices.text.strip()])
+
+    # Создаем DataFrame
+df = pd.DataFrame(data, columns=['price', 'names'])
+
+# Сохраняем в Excel
+df.to_excel('file.xlsx', index=False)
+print("Данные успешно записаны в file.xlsx")

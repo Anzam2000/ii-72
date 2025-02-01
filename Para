@@ -1,22 +1,52 @@
 
+import telebot
 import pandas as pd
 import requests
 import bs4
-req = requests.get("https://books.toscrape.com/")
-src = req.text
-soup = bs4.BeautifulSoup(src, "html.parser")
-price = soup.findAll('p', class_='price_color')
-for x in price:
-    print(*x)
-names = soup.findAll('h3')
-# Создаем список для хранения данных
-data = []
-for title, prices in zip(names, price):
-    data.append([title.text.strip(), prices.text.strip()])
+import time
+#импорт библиотек
+token = "7791351459:AAF3SkCaNXpTn3RSbX_FcbeaalcomLprKV8"
+bot = telebot.TeleBot(token)
 
-    # Создаем DataFrame
-df = pd.DataFrame(data, columns=['price', 'names'])
+class_data = {}
+@bot.message_handler(content_types=['text'])
+def parse_page(message):
+    if message.text.startswith('/start'):
+        bot.send_message(message.chat.id, 'Даров, я парсю сайты. Пожалуйста, отправьте URL-адрес страницы для парсинга.')
+        class_data[message.chat.id] = {'url': None, 'class_name': None, 'tag_name': None}
+        #запрашивает ссылку на сайт
+    elif class_data[message.chat.id]['url'] is None:
+        class_data[message.chat.id]['url'] = message.text
+        bot.send_message(message.chat.id, 'Пожалуйста, введите класс элемента.')
+        #далее нужен класс
+    elif class_data[message.chat.id]['class_name'] is None:
+        class_data[message.chat.id]['class_name'] = message.text
+        bot.send_message(message.chat.id, 'Пожалуйста, введите имя тега.')
+        #и тег
+    elif class_data[message.chat.id]['tag_name'] is None:
+        class_data[message.chat.id]['tag_name'] = message.text
+        url = class_data[message.chat.id]['url']
+        class_name = class_data[message.chat.id]['class_name']
+        tag_name = class_data[message.chat.id]['tag_name']
+        req = requests.get(url)
+        req.raise_for_status()
+        src = req.text
+        soup = bs4.BeautifulSoup(src, "html.parser")
+        price = soup.findAll(tag_name, class_=class_name)
+        data = []
+        #создаем список для данных
+        for prices in price:
+            data.append([prices.text.strip()])
+            #апендим данные в список
 
-# Сохраняем в Excel
-df.to_excel('file.xlsx', index=False)
-print("Данные успешно записаны в file.xlsx")
+        df = pd.DataFrame(data, columns=['price'])
+        #создаем файл экслеля
+        try:
+            df.to_excel('file.xlsx', index=False)
+            bot.send_message(message.chat.id, 'Данные успешно записаны в file.xlsx.')
+            bot.send_document(message.chat.id,open(r'C:\Users\Unicum_Student\PycharmProjects\pythonProject16\file.xlsx', 'rb'))
+
+        except Exception as err:
+            bot.send_message(message.chat.id, 'Ошибка при записи данных в file.xlsx: ' + str(err))
+time.sleep(10)
+bot.polling(none_stop=True)

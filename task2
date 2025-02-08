@@ -1,16 +1,36 @@
-import random
-x = int(input())
-def shift_rows(matrix, shifts):
-    rows = len(matrix)
-    shifts = shifts % rows
-    return matrix[-shifts:] + matrix[:-shifts]
-array = [[random.randint(0, 10) for i in range(x)] for j in range(x)]
-print("Исходная матрица:")
-for rowss in array:
-    print(rowss)
-print()
-shifts = 1
-result = shift_rows(array, shifts)
-print("Матрица после сдвига:")
-for i, row in enumerate(result):
-    print(row)
+1
+import itertools
+list1 = ['k1','k2','k3','k4','s1','s2','s3','s4','j1','j2','j3','j4','j1','j2','j3','j4']
+a = 0
+for p in itertools.permutations(list1):
+    a += 1
+print(a)
+2
+import itertools
+list1 = ['b1','b2','p3','p4','s1','x2','x3','x4','x1','x2']
+a = 0
+for p in itertools.permutations(list1):
+    a += 1
+print(a)
+3
+import itertools
+list1 = ['g1','g2','g3','g4','r1','r2','r3','r4','r5','r6','b1','b2','b3','b4','b5']
+a = 0
+for p in itertools.permutations(list1):
+    a += 1
+print(a)
+
+4
+import itertools
+list1 = ['a1','a2','g3','g4','g5','ap2','ap3','ap4','ap5']
+a = 0
+for p in itertools.permutations(list1):
+    a += 1
+print(a)
+5
+import itertools
+list1 = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+a = 0
+for p in itertools.permutations(list1):
+    a += 1
+print(a)

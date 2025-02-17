@@ -1,22 +1,20 @@
-import random
-from datetime import datetime
-array = [random.randint(0, 10) for i in range(10000)]
-start_time = datetime.now()
-def bubble_sort(row):
-    for i in range(len(row) + 1):
-        for j in range(len(row) - 1 - i):
-            if row[j] > row[j + 1]:
-                row[j], row[j + 1] = row[j + 1], row[j]
-    return row
-print(array)
-list1 = bubble_sort(array)
-print(list1)
-end_time = datetime.now()
-execution_time = end_time - start_time
-print(execution_time)
-start_time = datetime.now()
-array.sort()
-print(array)
-end_time = datetime.now()
-execution_time = end_time - start_time
-print(execution_time)
+def text_to_bits(text, encoding='utf-8', errors='surrogatepass'):
+    bits = bin(int.from_bytes(text.encode(encoding, errors), 'big'))[2:]
+    return bits.zfill(8 * ((len(bits) + 7) // 8))
+def hide_char_in_text(text, binary_char):
+    print(binary_char)
+    text_list = list(text)
+    print(text_list)
+    for i, bit in enumerate(binary_char):
+        if bit == '1':
+            if i == ' ':
+                pass
+            else:
+                text_list[i] = text_list[i].upper()
+        elif bit == '0':
+            text_list[i] = text_list[i].lower()
+    return ''.join(text_list)
+text = input()
+char = input()
+result = hide_char_in_text(text,text_to_bits(char))
+print(result)

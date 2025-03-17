@@ -1,0 +1,10 @@
+import hashlib
+def hash_text(text):
+    encoded_text = text.encode('utf-8')
+    hash_object = hashlib.sha256(encoded_text)
+    hex_digest = hash_object.hexdigest()
+    return hex_digest
+user_input = input("Введите текст для хеширования :")
+hashed_text = hash_text(user_input)
+if hashed_text:
+    print("SHA-256 хеш:", hashed_text)

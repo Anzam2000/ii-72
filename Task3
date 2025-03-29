@@ -1,54 +1,47 @@
-import itertools
-import time
+from abc import ABC, abstractmethod
 
-list1 = [1, 2, 3]
-print("Исходный список:", list1)
-start_time = time.time()
-def trot(list1, num, indx):
-    try:
-        if num > 1:
-            if list1[num-indx] > list1[num-indx-1]:
-                list1[num-indx], list1[num-indx-1] = list1[num-indx-1], list1[num-indx]
-                print(list1)
-                return trot(list1, num, indx+1)
-            else:
-                return 0
-    except:
-        return list1
+class Snape(ABC):
+    @abstractmethod
+    def get_role(self):
+        pass
 
-trot(list1, len(list1), 1)
-end_time = time.time()
-elapsed_time = end_time - start_time
-print('Elapsed time: ', elapsed_time)
-print('Это был трактор')
-start_time1 = time.time()
-def narayana(arr):
-    print(arr)
-    while True:
-        index_i = 0
-        index_j = 0
-        for i in range(len(arr)-2, -1, -1):
-            if arr[i] < arr[i+1]:
-                index_i = i
-                break
+class circle(Snape):
+    def __init__(self, radius):
+        self.radius = radius
+
+    def get_role(self):
+        return (3.14 * (self.radius ** 2))
+
+
+class square(Snape):
+    def __init__(self, a):
+        self.a = a
+    def get_role(self):
+        return self.a ** 2
+
+class triangle(Snape):
+    def __init__(self, a, b, c):
+        self.a = a
+        self.b = b
+        self.c = c
+    def get_role(self):
+        return self.a + self.b + self.c
+
+class SnapeFactory:
+    @staticmethod
+    def create_user(user_type):
+        if user_type == "круг":
+            return circle(int(input()))
+        elif user_type == "квадрат":
+            return square(int(input()))
+        elif user_type == "треугольник":
+            return triangle(int(input()), int(input()), int(input()))
         else:
-            return ""
-        for j in range(len(arr)-1, -1, -1):
-            if arr[j] > arr[index_i]:
-                index_j = j
-                break
-        arr[index_i], arr[index_j] = arr[index_j], arr[index_i]
-        arr[index_i+1:] = arr[:index_i:-1]
-        print(arr)
-arr = [1, 2, 3]
-print(narayana(arr), 'нараяна')
-end_time1 = time.time()
-elapsed_time1 = end_time1 - start_time1
-print('Elapsed time: ', elapsed_time1)
-start_time2 = time.time()
-for p in itertools.permutations(list1):
-    print(p)
-print('itertools')
-end_time2 = time.time()
-elapsed_time2 = end_time2 - start_time2
-print('Elapsed time: ', elapsed_time2)
+            raise ValueError("Неизвестный тип пользователя")
+
+if __name__ == "__main__":
+    snape1 = SnapeFactory.create_user("квадрат")
+    print(snape1.get_role())  
+
+    snape2 = SnapeFactory.create_user("круг")
+    print(snape2.get_role())  

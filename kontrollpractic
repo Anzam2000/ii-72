@@ -1,10 +1,218 @@
-import hashlib
-def hash_text(text):
-    encoded_text = text.encode('utf-8')
-    hash_object = hashlib.sha256(encoded_text)
-    hex_digest = hash_object.hexdigest()
-    return hex_digest
-user_input = input("Введите текст для хеширования :")
-hashed_text = hash_text(user_input)
-if hashed_text:
-    print("SHA-256 хеш:", hashed_text)
+import json
+import os
+import tkinter as tk
+from tkinter import ttk, messagebox
+from typing import Dict, Optional
+
+
+class PasswordManager:
+    _instances: Dict[str, 'PasswordManager'] = {}
+    _file_path: str = "passwords.json"
+
+    def __new__(cls, account: str):
+        if account not in cls._instances:
+            cls._instances[account] = super().__new__(cls)
+            cls._instances[account].account = account
+            cls._instances[account].__load_data()
+        return cls._instances[account]
+
+    def __load_data(self) -> None:
+        self._data = {}
+        if os.path.exists(self._file_path):
+            with open(self._file_path, 'r') as f:
+                try:
+                    self._data = json.load(f)
+                except json.JSONDecodeError:
+                    self._data = {}
+
+    def __save_data(self) -> None:
+        with open(self._file_path, 'w') as f:
+            json.dump(self._data, f, indent=4)
+
+    def set_password(self, password: str) -> None:
+        self._data[self.account] = password
+        self.__save_data()
+
+    def get_password(self) -> Optional[str]:
+        return self._data.get(self.account)
+
+    @classmethod
+    def get_all_accounts(cls) -> Dict[str, str]:
+        if os.path.exists(cls._file_path):
+            with open(cls._file_path, 'r') as f:
+                try:
+                    return json.load(f)
+                except json.JSONDecodeError:
+                    return {}
+        return {}
+
+
+class PasswordManagerApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Менеджер паролей")
+        self.root.geometry("500x400")
+
+        self.setup_ui()
+        self.update_accounts_list()
+
+    def setup_ui(self):
+        # Стили
+        style = ttk.Style()
+        style.configure("TFrame", background="#f0f0f0")
+        style.configure("TLabel", background="#f0f0f0", font=('Arial', 10))
+        style.configure("TButton", font=('Arial', 10))
+        style.configure("TEntry", font=('Arial', 10))
+
+        # Основной фрейм
+        main_frame = ttk.Frame(self.root, padding="10")
+        main_frame.pack(fill=tk.BOTH, expand=True)
+
+        # Левая панель (список аккаунтов)
+        left_frame = ttk.Frame(main_frame)
+        left_frame.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10))
+
+        ttk.Label(left_frame, text="Учетные записи:").pack(anchor=tk.W)
+
+        self.accounts_listbox = tk.Listbox(left_frame, width=25, height=15, font=('Arial', 10))
+        self.accounts_listbox.pack(fill=tk.Y, pady=(0, 10))
+        self.accounts_listbox.bind('<<ListboxSelect>>', self.on_account_select)
+
+        # Правая панель (управление)
+        right_frame = ttk.Frame(main_frame)
+        right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+
+        # Форма для добавления/редактирования
+        form_frame = ttk.Frame(right_frame)
+        form_frame.pack(fill=tk.X, pady=(0, 10))
+
+        ttk.Label(form_frame, text="Учетная запись:").grid(row=0, column=0, sticky=tk.W, pady=(0, 5))
+        self.account_entry = ttk.Entry(form_frame, width=30)
+        self.account_entry.grid(row=0, column=1, sticky=tk.EW, pady=(0, 5))
+
+        ttk.Label(form_frame, text="Пароль:").grid(row=1, column=0, sticky=tk.W, pady=(0, 5))
+        self.password_entry = ttk.Entry(form_frame, width=30, show="*")
+        self.password_entry.grid(row=1, column=1, sticky=tk.EW, pady=(0, 5))
+
+        # Кнопки управления
+        buttons_frame = ttk.Frame(right_frame)
+        buttons_frame.pack(fill=tk.X)
+
+        self.add_button = ttk.Button(buttons_frame, text="Добавить", command=self.add_account)
+        self.add_button.pack(side=tk.LEFT, padx=(0, 5))
+
+        self.update_button = ttk.Button(buttons_frame, text="Обновить", command=self.update_account, state=tk.DISABLED)
+        self.update_button.pack(side=tk.LEFT, padx=(0, 5))
+
+        self.delete_button = ttk.Button(buttons_frame, text="Удалить", command=self.delete_account, state=tk.DISABLED)
+        self.delete_button.pack(side=tk.LEFT)
+
+        # Кнопка показать/скрыть пароль
+        self.show_password_var = tk.IntVar()
+        self.show_password_check = ttk.Checkbutton(
+            right_frame,
+            text="Показать пароль",
+            variable=self.show_password_var,
+            command=self.toggle_password_visibility
+        )
+        self.show_password_check.pack(anchor=tk.W, pady=(10, 0))
+
+    def update_accounts_list(self):
+        self.accounts_listbox.delete(0, tk.END)
+        accounts = PasswordManager.get_all_accounts()
+        for account in sorted(accounts.keys()):
+            self.accounts_listbox.insert(tk.END, account)
+
+    def on_account_select(self, event):
+        selection = self.accounts_listbox.curselection()
+        if selection:
+            account = self.accounts_listbox.get(selection[0])
+            self.account_entry.delete(0, tk.END)
+            self.account_entry.insert(0, account)
+
+            password = PasswordManager(account).get_password()
+            self.password_entry.delete(0, tk.END)
+            self.password_entry.insert(0, password or "")
+
+            self.update_button.config(state=tk.NORMAL)
+            self.delete_button.config(state=tk.NORMAL)
+            self.add_button.config(state=tk.DISABLED)
+        else:
+            self.clear_form()
+
+    def clear_form(self):
+        self.account_entry.delete(0, tk.END)
+        self.password_entry.delete(0, tk.END)
+        self.update_button.config(state=tk.DISABLED)
+        self.delete_button.config(state=tk.DISABLED)
+        self.add_button.config(state=tk.NORMAL)
+
+    def add_account(self):
+        account = self.account_entry.get().strip()
+        password = self.password_entry.get().strip()
+
+        if not account:
+            messagebox.showerror("Ошибка", "Введите имя учетной записи")
+            return
+
+        if not password:
+            messagebox.showerror("Ошибка", "Введите пароль")
+            return
+
+        if account in PasswordManager.get_all_accounts():
+            messagebox.showerror("Ошибка", "Учетная запись уже существует")
+            return
+
+        PasswordManager(account).set_password(password)
+        self.update_accounts_list()
+        self.clear_form()
+        messagebox.showinfo("Успех", "Учетная запись добавлена")
+
+    def update_account(self):
+        account = self.account_entry.get().strip()
+        password = self.password_entry.get().strip()
+
+        if not account:
+            messagebox.showerror("Ошибка", "Введите имя учетной записи")
+            return
+
+        if not password:
+            messagebox.showerror("Ошибка", "Введите пароль")
+            return
+
+        PasswordManager(account).set_password(password)
+        self.update_accounts_list()
+        messagebox.showinfo("Успех", "Пароль обновлен")
+
+    def delete_account(self):
+        account = self.account_entry.get().strip()
+
+        if not account:
+            messagebox.showerror("Ошибка", "Выберите учетную запись для удаления")
+            return
+
+        if messagebox.askyesno("Подтверждение", f"Удалить учетную запись '{account}'?"):
+            accounts = PasswordManager.get_all_accounts()
+            if account in accounts:
+                del accounts[account]
+                with open(PasswordManager._file_path, 'w') as f:
+                    json.dump(accounts, f, indent=4)
+
+                if account in PasswordManager._instances:
+                    del PasswordManager._instances[account]
+
+                self.update_accounts_list()
+                self.clear_form()
+                messagebox.showinfo("Успех", "Учетная запись удалена")
+
+    def toggle_password_visibility(self):
+        if self.show_password_var.get():
+            self.password_entry.config(show="")
+        else:
+            self.password_entry.config(show="*")
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = PasswordManagerApp(root)
+    root.mainloop()

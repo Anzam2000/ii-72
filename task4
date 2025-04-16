@@ -1,16 +1,100 @@
-import rsa
+from abc import ABC, abstractmethod
+from telebot import types
+import telebot
+token = "7791351459:AAElNRWWb3xjY-3vtC_A-31n4RwW2Nm53P8"
+bot = telebot.TeleBot(token)
+price = {
+    "Cappucino": 150,
+    "Amerikano": 120,
+    "Espresso": 130,
+    "Sugar": 10,
+    "Syrup": 40,
+    "Milk": 30
+}
+class Coffee(ABC):
+    @abstractmethod
+    def cost(self):
+        pass
 
-mess = 'Hello, Codeby!'
-(pubkey, privkey) = rsa.newkeys(512)  # Генерируем 2 ключа
+    @abstractmethod
+    def description(self):
+        pass
+class BasicCoffee(Coffee):
+    def cost(self):
+        return 100
 
-signature = rsa.sign(mess.encode(), privkey, 'SHA-256')  # Шифруем с помощью закрытого ключа
-mess1 = 'Hello , lox'
-try:
-    rsa.verify(mess1.encode(), signature, pubkey)  # Проверяем подпись с помощью открытого ключа
-    print("Подпись верна")
-except rsa.VerificationError:
-    print("Подпись неверна")
+    def description(self):
+        return "Простой кофе"
+class CoffeeDecorator(Coffee):
+    def __init__(self, coffee: Coffee):
+        self._coffee = coffee
 
-print(mess, 'Входные данные')
-print(signature.hex(), 'Цифровая подпись (hex)')
-print(pubkey, 'Открытый ключ')
+    def cost(self):
+        return self._coffee.cost()
+
+    def description(self):
+        return self._coffee.description()
+class WithMilk(CoffeeDecorator):
+    def cost(self):
+        return self._coffee.cost() + price["Milk"]
+
+    def description(self):
+        return self._coffee.description() + ", с молоком"
+
+class WithSyrup(CoffeeDecorator):
+    def cost(self):
+        return self._coffee.cost() + price["Syrup"]
+
+    def description(self):
+        return self._coffee.description() + ", с сиропом"
+
+class WithSugar(CoffeeDecorator):
+    def cost(self):
+        return self._coffee.cost() + price["Sugar"]
+
+    def description(self):
+        return self._coffee.description() + ", с сахаром"
+class Cappucino(Coffee):
+    def cost(self):
+        return price["Cappucino"]
+    def description(self):
+        return "Капучино"
+class Amerikano(Coffee):
+    def cost(self):
+        return price["Amerikano"]
+    def description(self):
+        return "Американо"
+class Espresso(Coffee):
+    def cost(self):
+        return price["Espresso"]
+    def description(self):
+        return "Експрессо"
+coffee = Cappucino()
+print(coffee.description())
+print(coffee.cost())
+coffee = WithSyrup(coffee)
+print(coffee.description())
+print(coffee.cost())
+@bot.message_handler(commands=['start'])
+def parse_page(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton("Капучино")
+    btn2 = types.KeyboardButton("Американо")
+    btn3 = types.KeyboardButton("Експрессо")
+    markup.add(btn1, btn2, btn3)
+    bot.send_message(message.chat.id, text="Привет я бот для кофейни выберите свой кофе".format(message.from_user), reply_markup=markup)
+
+@bot.message_handler(content_types=['text'])
+def func(message):
+
+    if(message.text == "Капучино"):
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        coffee = Cappucino()
+        bot.send_message(message.chat.id, f"Ваш кофе {coffee.description()} {coffee.cost()} рублей", reply_markup = markup)
+    elif(message.text == "Американо"):
+        coffee = Amerikano()
+        bot.send_message(message.chat.id, f"Ваш кофе {coffee.description()} {coffee.cost()} рублей")
+    elif (message.text == "Експрессо"):
+        coffee = Espresso()
+        bot.send_message(message.chat.id, f"Ваш кофе {coffee.description()} {coffee.cost()} рублей")
+bot.polling(none_stop=True)

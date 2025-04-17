@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from telebot import types
 import telebot
-token = "7791351459:AAElNRWWb3xjY-3vtC_A-31n4RwW2Nm53P8"
+token = 
 bot = telebot.TeleBot(token)
 price = {
     "Cappucino": 150,

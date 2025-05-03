@@ -1,52 +1,98 @@
+import tkinter as tk
+from random import randint
+from abc import ABC, abstractmethod
+class Shape(ABC):
+    def __init__(self, canvas, x, y, color):
+        self.canvas = canvas
+        self.x = x
+        self.y = y
+        self.color = color
+    @abstractmethod
+    def draw(self):
+        pass
+class Oval(Shape):
+    def draw(self):
+        x1 = randint(0, 400 - self.x)
+        y1 = randint(0, 400 - self.y)
+        x2 = x1 + self.x
+        y2 = y1 + self.y
+        self.canvas.create_oval(x1, y1, x2, y2, fill=self.color, outline=self.color)
+class Rectangle(Shape):
+    def draw(self):
+        x1 = randint(0, 400 - self.x)
+        y1 = randint(0, 400 - self.y)
+        x2 = x1 + self.x
+        y2 = y1 + self.y
+        self.canvas.create_rectangle(x1, y1, x2, y2, fill=self.color, outline=self.color)
 
-import telebot
-import pandas as pd
-import requests
-import bs4
-import time
-#импорт библиотек
-token = ""
-bot = telebot.TeleBot(token)
+class Triangle(Shape):
+    def draw(self):
+        x_center = randint(self.x, 400 - self.x)
+        y_top = randint(0, 400 - self.y)
+        x_left = x_center - self.x // 2
+        x_right = x_center + self.x // 2
+        y_bottom = y_top + self.y
 
-class_data = {}
-@bot.message_handler(content_types=['text'])
-def parse_page(message):
-    if message.text.startswith('/start'):
-        bot.send_message(message.chat.id, 'Даров, я парсю сайты. Пожалуйста, отправьте URL-адрес страницы для парсинга.')
-        class_data[message.chat.id] = {'url': None, 'class_name': None, 'tag_name': None}
-        #запрашивает ссылку на сайт
-    elif class_data[message.chat.id]['url'] is None:
-        class_data[message.chat.id]['url'] = message.text
-        bot.send_message(message.chat.id, 'Пожалуйста, введите класс элемента.')
-        #далее нужен класс
-    elif class_data[message.chat.id]['class_name'] is None:
-        class_data[message.chat.id]['class_name'] = message.text
-        bot.send_message(message.chat.id, 'Пожалуйста, введите имя тега.')
-        #и тег
-    elif class_data[message.chat.id]['tag_name'] is None:
-        class_data[message.chat.id]['tag_name'] = message.text
-        url = class_data[message.chat.id]['url']
-        class_name = class_data[message.chat.id]['class_name']
-        tag_name = class_data[message.chat.id]['tag_name']
-        req = requests.get(url)
-        req.raise_for_status()
-        src = req.text
-        soup = bs4.BeautifulSoup(src, "html.parser")
-        price = soup.findAll(tag_name, class_=class_name)
-        data = []
-        #создаем список для данных
-        for prices in price:
-            data.append([prices.text.strip()])
-            #апендим данные в список
+        self.canvas.create_polygon(
+            x_center, y_top,
+            x_left, y_bottom,
+            x_right, y_bottom,
+            fill=self.color, outline="black"
+        )
 
-        df = pd.DataFrame(data, columns=['price'])
-        #создаем файл экслеля
-        try:
-            df.to_excel('file.xlsx', index=False)
-            bot.send_message(message.chat.id, 'Данные успешно записаны в file.xlsx.')
-            bot.send_document(message.chat.id,open(r'C:\Users\Unicum_Student\PycharmProjects\pythonProject16\file.xlsx', 'rb'))
 
-        except Exception as err:
-            bot.send_message(message.chat.id, 'Ошибка при записи данных в file.xlsx: ' + str(err))
-time.sleep(10)
-bot.polling(none_stop=True)
+
+class ShapeApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Генератор фигур")
+        self.create_widgets()
+
+    def create_widgets(self):
+        tk.Label(self.root, text="Ширина:").place(x=20, y=20)
+        self.x_entry = tk.Entry(self.root)
+        self.x_entry.place(x=80, y=20)
+
+        tk.Label(self.root, text="Высота:").place(x=20, y=50)
+        self.y_entry = tk.Entry(self.root)
+        self.y_entry.place(x=80, y=50)
+
+        tk.Label(self.root, text="Цвет:").place(x=20, y=80)
+        self.color_entry = tk.Entry(self.root)
+        self.color_entry.place(x=80, y=80)
+        self.color_entry.insert(0, "red")
+
+        tk.Button(
+            self.root, width=20, height=3,
+            text="Создать овал", command=self.create_shape(Oval)
+        ).pack(pady=5)
+
+        tk.Button(
+            self.root, width=20, height=3,
+            text="Создать прямоугольник", command=self.create_shape(Rectangle)
+        ).pack(pady=5)
+
+        tk.Button(
+            self.root, width=20, height=3,
+            text="Создать треугольник", command=self.create_shape(Triangle)
+        ).pack(pady=5)
+
+    def create_shape(self, shape_class):
+        def wrapper():
+                x = int(self.x_entry.get())
+                y = int(self.y_entry.get())
+                color = self.color_entry.get()
+
+                window = tk.Toplevel(self.root)
+                window.title(shape_class.__name__)
+
+                canvas = tk.Canvas(window, bg="yellow", width=400, height=400)
+                canvas.pack(pady=10)
+
+                shape = shape_class(canvas, x, y, color)
+                shape.draw()
+
+        return wrapper
+root = tk.Tk()
+app = ShapeApp(root)
+root.mainloop()
